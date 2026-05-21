@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Model Checkpoints (large files)
+checkpoints/*/
+!checkpoints/.gitkeep
+*.pt
+*.pth
+*.bin
+*.safetensors
+
+# Data cache
+data/cache/
+*.arrow
+*.parquet
+
+# Logs
+logs/
+*.log
+*.out
+
+# TensorBoard
+events.out.tfevents.*
+
+# Results (keep structure but not large files)
+results/*.json
+results/*.png
+results/*.jpg
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# HuggingFace cache (usually in ~/.cache, but just in case)
+transformers_cache/
+hf_cache/
