@@ -140,6 +140,31 @@ python src/train.py \
     --lora_alpha 16 \
     --num_workers 4
 ```
+### A100 Optimized Training (Fastest - 6-8 hours)
+
+For A100 80GB GPUs, use larger batch size and bf16 precision:
+
+```bash
+python src/train.py \
+    --num_epochs 3 \
+    --batch_size 4 \
+    --mixed_precision bf16 \
+    --learning_rate 2e-5 \
+    --warmup_steps 500 \
+    --save_steps 1000 \
+    --eval_steps 500 \
+    --logging_steps 100 \
+    --output_dir ./checkpoints/minicpm-av-a100 \
+    --use_lora \
+    --lora_r 8 \
+    --lora_alpha 16 \
+    --num_workers 4
+```
+
+**Why this is faster:**
+- `batch_size 4` → 2x fewer steps than batch_size 2
+- `mixed_precision bf16` → A100 native support, ~10% faster
+- Total time: **6-8 hours** vs 12-16 hours on RTX 4090
 
 ### Training with Gradient Accumulation (for smaller GPUs)
 ```bash
@@ -149,6 +174,7 @@ python src/train.py \
     --gradient_accumulation_steps 4 \
     --learning_rate 2e-5 \
     --output_dir ./checkpoints/minicpm-av \
+```
     --use_lora
 ```
 
