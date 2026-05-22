@@ -170,7 +170,51 @@ tail -f checkpoints/minicpm-av/training.log
 
 ---
 
-## Step 9: Evaluate Trained Model
+## Step 9: Verify Checkpoint Contents (IMPORTANT)
+
+Before evaluating, verify that your checkpoint contains LoRA weights:
+
+```bash
+# Check checkpoint structure
+ls -la ./checkpoints/minicpm-av/best_model/
+
+# Expected output:
+# audio_components.pt      # Audio projector, compressor, embeddings
+# lora_adapters/           # LoRA weights (directory)
+# └── adapter_config.json
+# └── adapter_model.safetensors (or .bin)
+```
+
+**⚠️ Critical:** If `lora_adapters/` folder is missing, the checkpoint does NOT contain the trained QA capability. This happens if using an older version of `modeling_minicpm_av.py`. Retrain with the fixed code.
+
+**Verify LoRA weights are saved:**
+```bash
+python -c "
+import os
+import torch
+
+checkpoint_dir = './checkpoints/minicpm-av/best_model'
+audio_file = os.path.join(checkpoint_dir, 'audio_components.pt')
+lora_dir = os.path.join(checkpoint_dir, 'lora_adapters')
+
+# Check audio components
+if os.path.exists(audio_file):
+    ckpt = torch.load(audio_file, map_location='cpu')
+    print(f'✓ Audio components: {list(ckpt.keys())}')
+else:
+    print('✗ Missing audio_components.pt')
+
+# Check LoRA adapters
+if os.path.exists(lora_dir):
+    print(f'✓ LoRA adapters directory exists')
+    lora_files = os.listdir(lora_dir)
+    print(f'  Files: {lora_files}')
+else:
+    print('✗ MISSING: lora_adapters/ directory - checkpoint incomplete!')
+"
+```
+
+## Step 10: Evaluate Trained Model
 
 ```bash
 python src/eval.py \
@@ -181,6 +225,8 @@ python src/eval.py \
 This runs:
 - AVQA accuracy on test set
 - Modality ablation (audio-only, vision-only, audio+vision)
+
+**Note:** If evaluation shows 0-2% accuracy, check that LoRA weights are present in the checkpoint (see Step 9).
 
 ---
 

@@ -282,6 +282,33 @@ checkpoint_path = hf_hub_download(
 
 **Solution:** Fixed `.format()` call on triple-quoted string with curly braces.
 
+### 7.3 🐛 CRITICAL BUG: LoRA Weights Not Saved in Checkpoints
+**Status:** Fixed in code, requires retraining
+
+**Problem:** The `save_pretrained()` method in `modeling_minicpm_av.py` only saved audio components (audio_projector, audio_compressor, modality_embeddings) but **NOT the LoRA adapter weights** from `model.minicpm.llm`. Since training used LoRA on the LLM (rank=16, alpha=32, ~91.8M trainable parameters), the checkpoints are missing the actual QA learning.
+
+**Impact:**
+- Evaluation shows 0-2% accuracy because the QA capability is lost
+- Audio components are trained, but the LLM doesn't know how to answer questions
+- All existing checkpoints (best_model, epoch_1, epoch_2, epoch_3) are affected
+
+**Fix Applied:**
+Updated `save_pretrained()` in `modeling_minicpm_av.py` to check if `model.minicpm.llm` has a `save_pretrained` method (indicating it's a PEFT model with LoRA) and save the LoRA adapters to a `lora_adapters/` folder:
+
+```python
+# Save LoRA adapters if present (PEFT model)
+if hasattr(self.minicpm.llm, 'save_pretrained'):
+    lora_save_path = os.path.join(save_path, 'lora_adapters')
+    self.minicpm.llm.save_pretrained(lora_save_path)
+    print(f"[MiniCPMAV] Saved LoRA adapters to {lora_save_path}")
+```
+
+**Action Required:**
+- ⚠️ **Retraining is needed** to generate proper checkpoints with LoRA weights
+- The training completed successfully (val loss 0.3194), but the save logic was broken
+- After retraining with the fixed code, checkpoints will contain both audio components AND LoRA weights
+- Evaluation will then work correctly with the trained QA capability
+
 ---
 
 ## 8. What's Left / Next Steps

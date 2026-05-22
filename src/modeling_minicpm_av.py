@@ -433,6 +433,13 @@ class MiniCPMAV(nn.Module):
             'config': self.config
         }, os.path.join(save_path, 'audio_components.pt'))
         
+        # Save LoRA adapters if present (PEFT model)
+        if hasattr(self.minicpm.llm, 'save_pretrained'):
+            # Check if this is a PEFT model with LoRA adapters
+            lora_save_path = os.path.join(save_path, 'lora_adapters')
+            self.minicpm.llm.save_pretrained(lora_save_path)
+            print(f"[MiniCPMAV] Saved LoRA adapters to {lora_save_path}")
+        
         # Save MiniCPM-V (optional, can be large)
         # self.minicpm.save_pretrained(os.path.join(save_path, 'minicpm'))
         
